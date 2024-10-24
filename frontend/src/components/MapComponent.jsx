@@ -1,91 +1,70 @@
-// MapComponent.jsx
-import  { useState, useEffect, useCallback } from 'react';
-import {
-  GoogleMap,
-  LoadScript,
-  Marker,
-  DirectionsService,
-  DirectionsRenderer,
-} from '@react-google-maps/api';
+import  { useState, useCallback, useMemo } from 'react';
+import { GoogleMap, DirectionsRenderer, useLoadScript } from '@react-google-maps/api';
+import { itineraryLocations } from '../api/locationData'; // Ensure this import is correct
 
-// Set the center point for Saint Martin
-const center = {
-  lat: 20.6280,
-  lng: 92.3246,
-};
-
-// Define the container for the map
 const containerStyle = {
   width: '100%',
   height: '600px',
 };
 
-const MapComponent = () => {
+const defaultCenter = { lat: 23.8122, lng: 91.2711 };
+
+const MapComponent = ({ apiKey }) => {
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: apiKey,
+  });
+
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [directionsResponse, setDirectionsResponse] = useState(null);
 
-  // Define some itinerary locations (Example: Saint Martin hotels, restaurants)
-  const itineraryLocations = [
-    { name: 'Saint Martin Hotel', lat: 20.6305, lng: 92.3241 },
-    { name: 'Blue Marina Restaurant', lat: 20.6318, lng: 92.3237 },
-    { name: 'Jetty Point', lat: 20.6295, lng: 92.3275 },
-  ];
+  const mapOptions = useMemo(() => ({
+    disableDefaultUI: true, // Optional: Hide default map controls
+    zoomControl: true,
+  }), []);
 
-  const directionsCallback = useCallback((result, status) => {
-    if (status === 'OK') {
-      setDirectionsResponse(result);
-    } else {
-      console.error(`Directions request failed due to ${status}`);
-    }
+  const calculateRoute = useCallback(() => {
+    if (itineraryLocations.length < 2) return;
+
+    const waypoints = itineraryLocations.slice(1, -1).map((location) => ({
+      location: { lat: location.lat, lng: location.lng },
+      stopover: true,
+    }));
+
+    const origin = itineraryLocations[0];
+    const destination = itineraryLocations[itineraryLocations.length - 1];
+
+    const directionsService = new window.google.maps.DirectionsService();
+    directionsService.route(
+      {
+        origin,
+        destination,
+        waypoints,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          setDirectionsResponse(result);
+        } else {
+          console.error(`Error fetching directions ${status}`);
+        }
+      }
+    );
   }, []);
 
-  useEffect(() => {
-    // Trigger directions service if itinerary has more than one stop
-    if (itineraryLocations.length > 1) {
-      const origin = itineraryLocations[0];
-      const destination = itineraryLocations[itineraryLocations.length - 1];
-
-      const waypoints = itineraryLocations.slice(1, -1).map((location) => ({
-        location: { lat: location.lat, lng: location.lng },
-        stopover: true,
-      }));
-
-      const DirectionsServiceOptions = {
-        origin: { lat: origin.lat, lng: origin.lng },
-        destination: { lat: destination.lat, lng: destination.lng },
-        waypoints: waypoints,
-        travelMode: 'DRIVING',
-      };
-
-      setDirectionsRequest(DirectionsServiceOptions);
-    }
-  }, [itineraryLocations]);
-
-  const [directionsRequest, setDirectionsRequest] = useState(null);
+  if (loadError) return <div>Error loading map</div>;
+  if (!isLoaded) return <div>Loading...</div>;
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyCuAm0o9pcq3vl1rM3aHf3kvd-j5bc89vY">
-      <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={15}>
-        {/* Render markers for each location */}
-        {itineraryLocations.map((location, index) => (
-          <Marker
-            key={index}
-            position={{ lat: location.lat, lng: location.lng }}
-            title={location.name}
-          />
-        ))}
-
-        {/* Render directions if available */}
-        {directionsRequest && (
-          <DirectionsService
-            options={directionsRequest}
-            callback={directionsCallback}
-          />
-        )}
-        {directionsResponse && (
-          <DirectionsRenderer directions={directionsResponse} />
-        )}
-      </GoogleMap>
-    </LoadScript>
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={defaultCenter}
+      zoom={12}
+      options={mapOptions}
+    >
+      {directionsResponse && (
+        <DirectionsRenderer directions={directionsResponse} />
+      )}
+    </GoogleMap>
   );
 };
 
