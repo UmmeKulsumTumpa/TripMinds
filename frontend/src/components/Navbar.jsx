@@ -2,61 +2,56 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from './AuthContext'; // Import the AuthContext
 
-const navStyles = {
-  position: 'fixed',
-  top: 0,
-  width: '100%',
-  zIndex: 1000,
-};
-
 const Navbar = () => {
   // Use the context to access user state and logout function
   const { user, logout } = useContext(AuthContext);
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light" style={navStyles}>
-      <div className="container-fluid">
-        {/* Website Name on the Right Side */}
-        <Link to="/" className="navbar-brand ml-auto">
-          TripMinds
-        </Link>
-
-        {/* Links in the Middle */}
-        <div className="collapse navbar-collapse justify-content-center">
-          <ul className="navbar-nav">
-            <li className="nav-item">
-              <Link to="/itinerary" className="nav-link">
-                Itinerary
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/blog" className="nav-link">
-                Blog
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/vlog" className="nav-link">
-                Vlog
-              </Link>
-            </li>
-          </ul>
+    <nav className="w-full fixed top-0 bg-gray-100 py-4 shadow-md z-10">
+      <div className="container mx-auto flex justify-between items-center">
+        
+        {/* Website Name on the Left */}
+        <div className="text-xl font-bold">
+          <Link to="/">TripMinds</Link>
         </div>
 
-        {/* Register/Login on Left (if not logged in), Username and Logout (if logged in) */}
-        <div className="navbar-nav ml-auto">
+        {/* Links in the Center */}
+        <ul className="flex space-x-6">
+          <li>
+            <Link to="/itinerary" className="text-gray-700 hover:text-gray-900">
+              Itinerary
+            </Link>
+          </li>
+          <li>
+            <Link to="/blog" className="text-gray-700 hover:text-gray-900">
+              Blog
+            </Link>
+          </li>
+          <li>
+            <Link to="/vlog" className="text-gray-700 hover:text-gray-900">
+              Vlog
+            </Link>
+          </li>
+        </ul>
+
+        {/* Right-side links: Register/Login or Username/Logout */}
+        <div className="flex items-center space-x-4">
           {!user ? (
             <>
-              <Link to="/register" className="nav-link">
+              <Link to="/register" className="text-gray-700 hover:text-gray-900">
                 Register
               </Link>
-              <Link to="/login" className="nav-link">
+              <Link to="/login" className="text-gray-700 hover:text-gray-900">
                 Login
               </Link>
             </>
           ) : (
             <>
-              <span className="navbar-text mr-3">Hello, {user.username}</span>
-              <button className="btn btn-outline-danger" onClick={logout}>
+              <span className="text-gray-700">Hello, {user.username}</span>
+              <button
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                onClick={logout}
+              >
                 Logout
               </button>
             </>
