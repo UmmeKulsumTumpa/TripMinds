@@ -4,8 +4,8 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
-const textRoutes = require('./routes/textRoutes'); // Import text routes
-
+// const textRoutes = require('./routes/textRoutes'); // Import text routes
+const hotelRoutes = require('./routes/hotelRoutes');
 // Load environment variables
 dotenv.config();
 
@@ -20,7 +20,7 @@ app.use(express.json()); // Parse incoming JSON bodies
 
 // Routes
 app.use('/api/auth', authRoutes);  // Authentication routes
-app.use('/api', textRoutes);       // Store/Retrieve text routes
+app.use('/api', hotelRoutes);       // Store/Retrieve text routes
 
 // Start the server
 const PORT = process.env.PORT || 3001;
